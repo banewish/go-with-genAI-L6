@@ -7,28 +7,67 @@
 // at least 8 cases each, including edge cases.
 package validate
 
+import (
+	"strings"
+	"unicode"
+)
+
 // ValidateEmail reports whether s is a syntactically valid email address.
 //
-// TODO: implement this function. At minimum it should:
-//   - reject the empty string,
-//   - require exactly one "@" with a non-empty local part and domain part,
-//   - reject values containing whitespace.
-//
-// Document any additional decisions you make (e.g. how you handle a
-// trailing dot, consecutive dots, or unicode characters) in a comment
-// here, and add matching test cases in validate_test.go.
+// Accepts: local@domain format where local and domain are non-empty.
+// Rejects: empty strings, multiple @, whitespace, consecutive dots, trailing dot.
 func ValidateEmail(s string) bool {
-	// TODO: implement me
-	return false
+	if s == "" || strings.ContainsAny(s, " \t\n\r") {
+		return false
+	}
+
+	parts := strings.Split(s, "@")
+	if len(parts) != 2 {
+		return false
+	}
+
+	local, domain := parts[0], parts[1]
+
+	if local == "" || domain == "" {
+		return false
+	}
+
+	if strings.Contains(local, "..") || strings.Contains(domain, "..") {
+		return false
+	}
+
+	if strings.HasSuffix(domain, ".") {
+		return false
+	}
+
+	if !strings.Contains(domain, ".") {
+		return false
+	}
+
+	return true
 }
 
 // ValidatePhone reports whether s is a syntactically valid phone number.
 //
-// TODO: implement this function. Decide which format(s) you accept
-// (e.g. "+380501234567", "050-123-4567") and document your decision
-// here. At minimum it should reject the empty string and any value
-// containing letters.
+// Accepts: +<digits>, <digits> with optional - separators, at least 7 digits total.
+// Rejects: empty strings, letters, spaces, less than 7 digits.
 func ValidatePhone(s string) bool {
-	// TODO: implement me
-	return false
+	if s == "" || strings.ContainsAny(s, " \t\n\r") {
+		return false
+	}
+
+	for _, ch := range s {
+		if !unicode.IsDigit(ch) && ch != '+' && ch != '-' {
+			return false
+		}
+	}
+
+	digitCount := 0
+	for _, ch := range s {
+		if unicode.IsDigit(ch) {
+			digitCount++
+		}
+	}
+
+	return digitCount >= 7
 }

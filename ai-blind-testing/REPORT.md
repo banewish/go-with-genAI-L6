@@ -19,25 +19,40 @@
 
 ## Function under test
 
-<!-- e.g. `func ValidateEmail(s string) bool` from validate/validate.go -->
+`func LoadTodos(path string) ([]Todo, error)` from todo/todo.go
 
 ## Prompt you gave the AI
 
-<!-- Paste the exact prompt you used. -->
+"Generate a comprehensive table-driven test suite for this Go function:
+
+```go
+func LoadTodos(path string) ([]Todo, error)
+```
+
+The function reads a JSON file and returns a slice of Todo structs. A Todo has ID (int), Title (string), Done (bool), and CreatedAt (time.Time) fields."
 
 ## Edge cases the AI found that you had missed
 
-<!-- List them, and say whether they exposed a real bug. -->
+- Corrupted/truncated JSON file (file cut off mid-parse)
+- File with wrong permissions (unreadable file)
+- Very large JSON files
+- JSON with extra/unknown fields in objects
+- Array vs single object JSON structure mismatches
+
+None of these exposed real bugs in the implementation—they're just extra defensive cases. The spec already covers malformed JSON and missing files.
 
 ## Edge cases you had that the AI missed
 
-<!-- List them, and say why you think the AI didn't think of them. -->
+- Empty JSON file (specifically `""` vs `[]` or `null`)
+- Files that exist but can't be read due to OS permissions
+- Race conditions with concurrent file access
+
+I think the AI missed these because it focused on "happy path" variations rather than OS-level error scenarios. Also, the empty file edge case is subtle—it's the difference between "no data" and "broken data."
 
 ## Cases where the AI's expected output was wrong
 
-<!-- AI can be confidently wrong about what the "correct" output should
-     be — did that happen here? -->
+The AI suggested that an empty file should successfully return an empty slice `[]`, but based on the spec in the test file (`TestLoadTodos_EmptyFile`), an empty file should be treated as malformed JSON and return an error. This is a design decision, not a bug in the AI.
 
 ## What you'd change about your own test-writing process after this
 
-<!-- A few sentences of reflection. -->
+I'd be more explicit upfront about the specification's intent. Telling the AI "empty file is an error" beforehand would have prevented the disconnect. Also, I'd trust the AI to generate volume and variety, but I need to review outputs against the actual spec and requirements—AI tests are good starting points but need context validation.
